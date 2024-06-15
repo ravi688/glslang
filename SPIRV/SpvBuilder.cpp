@@ -3433,7 +3433,34 @@ Id Builder::createConstructor(Decoration precision, const std::vector<Id>& sourc
         if (numTargetComponents > 1)
             constituents.push_back(comp);
         else
-            result = comp;
+        {
+            auto compTypeId = getTypeId(comp);
+            if(compTypeId != resultTypeId) {
+                const std::vector<Id>& operands = { comp };
+                if(isFloatType(compTypeId))
+                {
+                    assert(isFloatType(resultTypeId));
+                    result = createOp(OpFConvert, resultTypeId, operands);
+                }
+                else if(isIntType(compTypeId))
+                {
+                    assert(isIntType(resultTypeId));
+                    result = createOp(OpSConvert, resultTypeId, operands);
+                }
+                else if(isUintType(compTypeId))
+                {
+                    assert(isUintType(resultTypeId));
+                    result = createOp(OpUConvert, resultTypeId , operands);
+                }
+                else
+                {
+                    result = comp;
+                    //assert(false && "No Conversion is possible");
+                }
+            }
+            else
+                result = comp;
+        }
         ++targetComponent;
     };
 
